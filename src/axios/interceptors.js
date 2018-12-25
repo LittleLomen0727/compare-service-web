@@ -1,10 +1,12 @@
 import axios from '@/axios'
 import logger, { error, info } from '@/logger'
-import App from '../App'
+import store from '../store'
+import { UPDATE_PAGE_LOADING } from '@/store/types/mutation-types'
 
 // Response interceptor
 axios.interceptors.response.use(
   res => {
+    store.commit(UPDATE_PAGE_LOADING, false)
     logger('')
     info('---------- Response Success ----------')
     logger(`[${res.config.method.toUpperCase()}] ${res.config.url}`)
@@ -14,6 +16,7 @@ axios.interceptors.response.use(
     return res
   },
   err => {
+    store.commit(UPDATE_PAGE_LOADING, false)
     const res = err.response
     logger(res)
     if (!res) {
@@ -35,7 +38,7 @@ axios.interceptors.response.use(
 // Request interceptor
 axios.interceptors.request.use(
   config => {
-    console.info(App)
+    store.commit(UPDATE_PAGE_LOADING, true)
     const accessToken = ''
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`

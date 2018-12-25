@@ -9,12 +9,14 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
+
 export default {
   name: 'App',
-  data () {
-    return {
-      pageLoading: false
-    }
+  computed: {
+    ...mapState([
+      'pageLoading'
+    ])
   }
 }
 </script>

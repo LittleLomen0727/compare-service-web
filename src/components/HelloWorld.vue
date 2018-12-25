@@ -18,52 +18,52 @@
             </Col>
           </Row>
 
-          <Row :gutter="16">
+          <Row :gutter="16"
+               type="flex">
             <Col span="12">
-            <FormItem label="Param 1">
-              <Row>
-                <Col span="11">
-                <Input></Input>
-                </Col>
-                <Col span="2"
-                     style="text-align: center">=</Col>
-                <Col span="11">
-                <Input></Input>
-                </Col>
-              </Row>
-            </FormItem>
-            <FormItem label="Param 2">
-              <Row>
-                <Col span="11">
-                <Input></Input>
-                </Col>
-                <Col span="2"
-                     style="text-align: center">=</Col>
-                <Col span="11">
-                <Input></Input>
-                </Col>
-              </Row>
-            </FormItem>
+            <div v-show="!!originUrlObj.endpoint">
+              <FormItem label="Endpoint:">
+                <Input v-model="originUrlObj.endpoint"></Input>
+              </FormItem>
+              <FormItem label="Param 2">
+                <Row>
+                  <Col span="11">
+                  <Input></Input>
+                  </Col>
+                  <Col span="2"
+                       style="text-align: center">=</Col>
+                  <Col span="11">
+                  <Input></Input>
+                  </Col>
+                </Row>
+              </FormItem>
+            </div>
             </Col>
             <Col span="12">
-            <FormItem label="Param 1">
-              <Row>
-                <Col span="11">
-                <Input></Input>
-                </Col>
-                <Col span="2"
-                     style="text-align: center">=</Col>
-                <Col span="11">
-                <Input></Input>
-                </Col>
-              </Row>
-            </FormItem>
+            <div v-show="!!comparedUrlObj.endpoint">
+              <FormItem label="Endpoint:">
+                <Input v-model="comparedUrlObj.endpoint"></Input>
+              </FormItem>
+              <FormItem label="Param 1">
+                <Row>
+                  <Col span="11">
+                  <Input></Input>
+                  </Col>
+                  <Col span="2"
+                       style="text-align: center">=</Col>
+                  <Col span="11">
+                  <Input></Input>
+                  </Col>
+                </Row>
+              </FormItem>
+            </div>
             </Col>
           </Row>
 
           <Row>
             <Col span="24">
-            <Button type="primary" @click="compare">Compare</Button>
+            <Button type="primary"
+                    @click="compare">Compare</Button>
             </Col>
           </Row>
         </Form>
@@ -72,13 +72,15 @@
 
     <div id="compare-result">
       <Split>
-            <div slot="left" class="demo-split-pane">
-                Left Pane
-            </div>
-            <div slot="right" class="demo-split-pane">
-                Right Pane
-            </div>
-        </Split>
+        <div slot="left"
+             class="demo-split-pane">
+          Left Pane
+        </div>
+        <div slot="right"
+             class="demo-split-pane">
+          Right Pane
+        </div>
+      </Split>
     </div>
   </div>
 </template>
@@ -93,7 +95,12 @@ export default {
 
   },
   computed: {
-
+    originUrlObj: function () {
+      return this.extractParams(this.originUrl)
+    },
+    comparedUrlObj: function () {
+      return this.extractParams(this.comparedUrl)
+    }
   },
   methods: {
     compare () {
@@ -106,12 +113,34 @@ export default {
       }).catch((e) => {
 
       })
+    },
+    extractParams (url) {
+      const urlObj = {
+        endpoint: '',
+        params: {}
+      }
+
+      var RegUrl = new RegExp()
+      RegUrl.compile('^[A-Za-z]+://[A-Za-z0-9-_]+\\.[A-Za-z0-9-_%&\\?\\/.=]+$')
+      if (!RegUrl.test(url)) {
+        return urlObj
+      }
+      if (url.indexOf('?') === -1) {
+        return urlObj
+      }
+      urlObj.endpoint = url.substr(0, url.indexOf('?'))
+      const paramsArray = url.substr(url.indexOf('?') + 1).split('&')
+      paramsArray.forEach(e => {
+        const pair = e.split('=')
+        urlObj.params[pair[0]] = pair[1]
+      })
+      return urlObj
     }
   },
   data () {
     return {
-      originUrl: '',
-      comparedUrl: ''
+      originUrl: 'https://wwwqa.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
+      comparedUrl: 'https://wwwqaalt2.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true'
     }
   }
 }
