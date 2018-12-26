@@ -21,42 +21,10 @@
           <Row :gutter="16"
                type="flex">
             <Col span="12">
-            <div v-show="!!originUrlObj.endpoint">
-              <FormItem label="Endpoint:">
-                <Input v-model="originUrlObj.endpoint"></Input>
-              </FormItem>
-              <FormItem label="Param 2">
-                <Row>
-                  <Col span="11">
-                  <Input></Input>
-                  </Col>
-                  <Col span="2"
-                       style="text-align: center">=</Col>
-                  <Col span="11">
-                  <Input></Input>
-                  </Col>
-                </Row>
-              </FormItem>
-            </div>
+            <url-params :url-obj="originUrlObj" />
             </Col>
             <Col span="12">
-            <div v-show="!!comparedUrlObj.endpoint">
-              <FormItem label="Endpoint:">
-                <Input v-model="comparedUrlObj.endpoint"></Input>
-              </FormItem>
-              <FormItem label="Param 1">
-                <Row>
-                  <Col span="11">
-                  <Input></Input>
-                  </Col>
-                  <Col span="2"
-                       style="text-align: center">=</Col>
-                  <Col span="11">
-                  <Input></Input>
-                  </Col>
-                </Row>
-              </FormItem>
-            </div>
+            <url-params :url-obj="comparedUrlObj" />
             </Col>
           </Row>
 
@@ -70,15 +38,29 @@
       </div>
     </div>
 
-    <div id="compare-result">
+    <div id="compare-result"
+         v-show="!!originResponse & !!comparedResponse"
+         class="demo-split">
       <Split>
         <div slot="left"
              class="demo-split-pane">
-          Left Pane
+          <Row>
+            <Col offset="22"
+                 span="2">
+            <Button data-clipboard-target="#originResponse" class="copy" @click="copyXml">Copy</Button>
+            </Col>
+          </Row>
+          <pre id="originResponse" style="text-align: left">{{originResponse}}</pre>
         </div>
         <div slot="right"
              class="demo-split-pane">
-          Right Pane
+          <Row>
+            <Col offset="22"
+                 span="2">
+            <Button data-clipboard-target="#comparedResponse" class="copy" @click="copyXml">Copy</Button>
+            </Col>
+          </Row>
+          <pre id="comparedResponse" style="text-align: left">{{comparedResponse}}</pre>
         </div>
       </Split>
     </div>
@@ -88,9 +70,13 @@
 <script>
 
 import service from '@/service'
-
+import Clipboard from 'clipboard'
+import UrlParams from './UrlParams'
 export default {
   name: 'HelloWorld',
+  components: {
+    UrlParams
+  },
   mounted () {
 
   },
@@ -109,7 +95,8 @@ export default {
         comparedUrl: this.comparedUrl
       }
       service.compare(request).then((response) => {
-
+        this.originResponse = this.formatXml(response.data.originResult)
+        this.comparedResponse = this.formatXml(response.data.comparedResult)
       }).catch((e) => {
 
       })
@@ -135,12 +122,74 @@ export default {
         urlObj.params[pair[0]] = pair[1]
       })
       return urlObj
+    },
+    formatXml (text) {
+      text = '\n' + text.replace(/(<\w+)(\s.*?>)/g, ($0, name, props) => {
+        return name + ' ' + props.replace(/\s+(\w+=)/g, ' $1')
+      }).replace(/>\s*?</g, '>\n<')
+      text = text.replace(/\n/g, '\r').replace(/<!--(.+?)-->/g, ($0, text) => {
+        var ret = '<!--' + escape(text) + '-->'
+        return ret
+      }).replace(/\r/g, '\n')
+      var rgx = /\n(<(([^?]).+?)(?:\s|\s*?>|\s*?(\/)>)(?:.*?(?:(?:(\/)>)|(?:<(\/)\2>)))?)/mg
+      var nodeStack = []
+      var output = text.replace(rgx, ($0, all, name, isBegin, isCloseFull1, isCloseFull2, isFull1, isFull2) => {
+        var isClosed = (isCloseFull1 === '/') || (isCloseFull2 === '/') || (isFull1 === '/') || (isFull2 === '/')
+        var prefix = ''
+        if (isBegin === '!') {
+          prefix = this.getPrefix(nodeStack.length)
+        } else {
+          if (isBegin !== '/') {
+            prefix = this.getPrefix(nodeStack.length)
+            if (!isClosed) {
+              nodeStack.push(name)
+            }
+          } else {
+            nodeStack.pop()
+            prefix = this.getPrefix(nodeStack.length)
+          }
+        }
+        var ret = '\n' + prefix + all
+        return ret
+      })
+      var outputText = output.substring(1)
+      outputText = outputText.replace(/\n/g, '\r').replace(/(\s*)<!--(.+?)-->/g, function ($0, prefix, text) {
+        if (prefix.charAt(0) === '\r') {
+          prefix = prefix.substring(1)
+        }
+        text = unescape(text).replace(/\r/g, '\n')
+        var ret = '\n' + prefix + '<!--' + text.replace(/^\s*/mg, prefix) + '-->'
+        return ret
+      })
+
+      return outputText.replace(/\s+$/g, '').replace(/\r/g, '\r\n')
+    },
+    getPrefix (prefixIndex) {
+      var span = '  '
+      var output = []
+      for (var i = 0; i < prefixIndex; ++i) {
+        output.push(span)
+      }
+      return output.join('')
+    },
+    copyXml () {
+      let clipboard = new Clipboard('.copy')
+      clipboard.on('success', e => {
+        this.$Message.success('Copy successful')
+        clipboard.destroy()
+      })
+      clipboard.on('error', e => {
+        this.$Message.error('Copy error')
+        clipboard.destroy()
+      })
     }
   },
   data () {
     return {
       originUrl: 'https://wwwqa.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
-      comparedUrl: 'https://wwwqaalt2.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true'
+      comparedUrl: 'https://wwwqaalt2.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
+      originResponse: '',
+      comparedResponse: ''
     }
   }
 }
@@ -168,5 +217,13 @@ a {
 }
 #compare-result {
   margin-top: 30px;
+}
+.demo-split {
+  height: auto;
+  padding: 0 50px;
+}
+.demo-split-pane {
+  padding: 10px;
+  border: 1px solid #dcdee2;
 }
 </style>
