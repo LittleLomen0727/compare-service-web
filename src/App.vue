@@ -1,5 +1,6 @@
 <template>
-  <div id="app">
+  <div id="app"
+       style="margin-top:30px">
     <Spin v-if="pageLoading"
           size="large"
           fix>
@@ -28,6 +29,5 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 30px;
 }
 </style>

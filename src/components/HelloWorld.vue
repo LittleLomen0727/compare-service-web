@@ -5,7 +5,7 @@
       <div id="compare-form">
         <Form :label-width="80"
               @submit.native.prevent>
-          <Row :gutter="16">
+          <Row :gutter="32">
             <Col span="12">
             <FormItem label="API 1:">
               <Input v-model="originUrl"></Input>
@@ -18,7 +18,7 @@
             </Col>
           </Row>
 
-          <Row :gutter="16"
+          <Row :gutter="32"
                type="flex">
             <Col span="12">
             <url-params :url-obj="originUrlObj" />
@@ -38,32 +38,31 @@
       </div>
     </div>
 
-    <div id="compare-result"
-         v-show="!!originResponse & !!comparedResponse"
-         class="demo-split">
-      <Split>
-        <div slot="left"
-             class="demo-split-pane">
-          <Row>
-            <Col offset="22"
-                 span="2">
-            <Button data-clipboard-target="#originResponse" class="copy" @click="copyXml">Copy</Button>
-            </Col>
+    <div class="diff-checker" v-show="!!originResponse & !!comparedResponse">
+      <div class="diff-toolbar">
+        <div class="diff-toolbar-stats-and-toggles">
+          <Row style="width:100%"
+               :gutter="32">
+            <Col offset="11"
+                 span="1"><Button :data-clipboard-text="originResponse"
+                    class="copy"
+                    @click="copyXml">Copy</Button></Col>
+            <Col offset="11"
+                 span="1"><Button :data-clipboard-text="comparedResponse"
+                    class="copy"
+                    @click="copyXml">Copy</Button></Col>
           </Row>
-          <pre id="originResponse" style="text-align: left">{{originResponse}}</pre>
         </div>
-        <div slot="right"
-             class="demo-split-pane">
-          <Row>
-            <Col offset="22"
-                 span="2">
-            <Button data-clipboard-target="#comparedResponse" class="copy" @click="copyXml">Copy</Button>
-            </Col>
-          </Row>
-          <pre id="comparedResponse" style="text-align: left">{{comparedResponse}}</pre>
-        </div>
-      </Split>
+      </div>
+
+      <div class="diff-output-container">
+        <vue-code-diff :old-string="originResponse"
+                       :new-string="comparedResponse"
+                       :context="50"
+                       outputFormat="side-by-side" />
+      </div>
     </div>
+
   </div>
 </template>
 
@@ -72,10 +71,12 @@
 import service from '@/service'
 import Clipboard from 'clipboard'
 import UrlParams from './UrlParams'
+import vueCodeDiff from 'vue-code-diff'
 export default {
   name: 'HelloWorld',
   components: {
-    UrlParams
+    UrlParams,
+    vueCodeDiff
   },
   mounted () {
 
@@ -197,20 +198,8 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h1,
-h2 {
-  font-weight: normal;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
+.service-header {
+  padding: 0 20px;
 }
 #compare-form {
   margin-top: 30px;
@@ -225,5 +214,84 @@ a {
 .demo-split-pane {
   padding: 10px;
   border: 1px solid #dcdee2;
+}
+.diff-checker {
+  margin-top: 20px;
+  width: 100%;
+}
+.diff-toolbar {
+  width: 100%;
+  -webkit-box-pack: center;
+  -moz-box-pack: center;
+  justify-content: center;
+  -webkit-box-align: center;
+  -moz-box-align: center;
+  align-items: center;
+  padding: 0px 10px;
+  background: rgb(237, 237, 237);
+}
+.exchange-outer-container {
+  position: absolute;
+  left: 50%;
+  display: flex;
+  -webkit-box-align: center;
+  -moz-box-align: center;
+  align-items: center;
+  height: 100%;
+}
+.exchange-container {
+  position: relative;
+  z-index: 201;
+  margin-left: -30px;
+  cursor: pointer;
+  font-size: 24px;
+  color: rgb(119, 119, 119);
+}
+.diff-toolbar-stats-and-toggles {
+  -webkit-box-align: center;
+  -moz-box-align: center;
+  align-items: center;
+  display: flex;
+  height: 50px;
+  position: relative;
+  -webkit-box-pack: justify;
+  -moz-box-pack: justify;
+  justify-content: space-between;
+}
+.diff-table {
+  background: #fff;
+  width: 100%;
+  border: 20px solid white;
+}
+.diff-line-number {
+  color: rgb(153, 153, 153);
+  min-width: 33px;
+  text-align: right;
+  padding: 0px 8px 0px 5px;
+}
+.diff-line {
+  text-align: left;
+  position: relative;
+  width: 50%;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1rem;
+  margin: 0px 1px;
+  border-right: 20px solid white;
+}
+h1,
+h2 {
+  font-weight: normal;
+}
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+li {
+  display: inline-block;
+  margin: 0 10px;
+}
+a {
+  color: #42b983;
 }
 </style>
