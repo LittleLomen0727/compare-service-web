@@ -38,8 +38,9 @@
       </div>
     </div>
 
-    <div class="diff-checker" v-show="!!originResponse & !!comparedResponse">
-      <div class="diff-toolbar">
+    <div class="diff-checker"
+         v-show="!!originResponse & !!comparedResponse">
+      <!-- <div class="diff-toolbar">
         <div class="diff-toolbar-stats-and-toggles">
           <Row style="width:100%"
                :gutter="32">
@@ -53,12 +54,12 @@
                     @click="copyXml">Copy</Button></Col>
           </Row>
         </div>
-      </div>
+      </div> -->
 
       <div class="diff-output-container">
         <vue-code-diff :old-string="originResponse"
                        :new-string="comparedResponse"
-                       :context="50"
+                       :context="5"
                        outputFormat="side-by-side" />
       </div>
     </div>
@@ -67,7 +68,7 @@
 </template>
 
 <script>
-
+import axios from 'axios'
 import service from '@/service'
 import Clipboard from 'clipboard'
 import UrlParams from './UrlParams'
@@ -91,16 +92,31 @@ export default {
   },
   methods: {
     compare () {
-      const request = {
-        originUrl: this.originUrl,
-        comparedUrl: this.comparedUrl
-      }
-      service.compare(request).then((response) => {
-        this.originResponse = this.formatXml(response.data.originResult)
-        this.comparedResponse = this.formatXml(response.data.comparedResult)
-      }).catch((e) => {
+      // const request = {
+      //   originUrl: this.originUrl,
+      //   comparedUrl: this.comparedUrl
+      // }
+      // service.compare(request).then((response) => {
+      //   this.originResponse = this.formatXml(response.data.originResult)
+      //   this.comparedResponse = this.formatXml(response.data.comparedResult)
+      // }).catch((e) => {
 
-      })
+      // })
+
+      // service.requestDirectXML(this.originUrl).then((response) => {
+      //   console.info(response)
+      // }).catch((e) => {
+
+      // })
+      axios.all([service.requestDirectXML(this.originUrl), service.requestDirectXML(this.comparedUrl)])
+        .then(axios.spread((originResponse, comparedResponse) => {
+          console.info(originResponse)
+          console.info(comparedResponse)
+          this.originResponse = this.formatXml(originResponse.data)
+          this.comparedResponse = this.formatXml(comparedResponse.data)
+        })).catch((e) => {
+          this.$Message.error('oops! couldn\'t get the response from the api')
+        })
     },
     extractParams (url) {
       const urlObj = {
@@ -187,7 +203,7 @@ export default {
   },
   data () {
     return {
-      originUrl: 'https://wwwqa.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
+      originUrl: 'https://www.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
       comparedUrl: 'https://wwwqaalt2.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
       originResponse: '',
       comparedResponse: ''
@@ -246,6 +262,9 @@ export default {
   cursor: pointer;
   font-size: 24px;
   color: rgb(119, 119, 119);
+}
+.diff-checker {
+  padding: 0 20px;
 }
 .diff-toolbar-stats-and-toggles {
   -webkit-box-align: center;
