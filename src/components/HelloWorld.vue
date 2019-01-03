@@ -36,7 +36,8 @@
             </Col>
             <Col span="6">
             Differentiation Range
-            <InputNumber v-model="context"/>
+            <InputNumber v-model="context"
+                         :min="1" />
             </Col>
           </Row>
 
@@ -113,6 +114,7 @@ export default {
           this.comparedResponse = format.xml(comparedResponse.data)
         })).catch((e) => {
           this.$Message.error('oops! couldn\'t get the response from the api')
+          console.info(e)
         })
     },
     extractParams (url) {

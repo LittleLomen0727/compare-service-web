@@ -59,7 +59,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .hljs {
   display: inline-block;
   padding: 0;
