@@ -13,10 +13,13 @@
   "dependencies": {
     "axios": "^0.18.0",
     "clipboard": "^2.0.4",
+    "diff": "^3.5.0",
+    "diff2html": "^2.5.0",
+    "highlight": "^0.2.4",
     "iview": "^3.1.5",
     "iview-loader": "^1.2.2",
+    "pretty-data": "^0.40.0",
     "vue": "^2.5.2",
-    "vue-code-diff": "0.0.4",
     "vue-router": "^3.0.1",
     "vuex": "^3.0.1"
   },

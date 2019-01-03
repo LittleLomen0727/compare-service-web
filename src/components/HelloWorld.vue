@@ -28,6 +28,18 @@
             </Col>
           </Row>
 
+          <Row :gutter="32">
+            <Col span="6">
+            <span :class="{'swtich-label':!compareOutputFormat}">Side-By-Side</span>
+            <Switch v-model="compareOutputFormat" />
+            <span :class="{'swtich-label':compareOutputFormat}">Line-By-Line</span>
+            </Col>
+            <Col span="6">
+            Differentiation Range
+            <InputNumber v-model="context"/>
+            </Col>
+          </Row>
+
           <Row>
             <Col span="24">
             <Button type="primary"
@@ -39,8 +51,8 @@
     </div>
 
     <div class="diff-checker"
-         v-show="!!originResponse & !!comparedResponse">
-      <!-- <div class="diff-toolbar">
+         v-show="!!originResponse && !!comparedResponse">
+      <div class="diff-toolbar">
         <div class="diff-toolbar-stats-and-toggles">
           <Row style="width:100%"
                :gutter="32">
@@ -54,13 +66,13 @@
                     @click="copyXml">Copy</Button></Col>
           </Row>
         </div>
-      </div> -->
+      </div>
 
       <div class="diff-output-container">
         <vue-code-diff :old-string="originResponse"
                        :new-string="comparedResponse"
-                       :context="5"
-                       outputFormat="side-by-side" />
+                       :context="context"
+                       :outputFormat="compareOutputFormat?'line-by-line':'side-by-side'" />
       </div>
     </div>
 
@@ -72,7 +84,8 @@ import axios from 'axios'
 import service from '@/service'
 import Clipboard from 'clipboard'
 import UrlParams from './UrlParams'
-import vueCodeDiff from 'vue-code-diff'
+import vueCodeDiff from './CodeDiff'
+var format = require('pretty-data').pd
 export default {
   name: 'HelloWorld',
   components: {
@@ -92,28 +105,12 @@ export default {
   },
   methods: {
     compare () {
-      // const request = {
-      //   originUrl: this.originUrl,
-      //   comparedUrl: this.comparedUrl
-      // }
-      // service.compare(request).then((response) => {
-      //   this.originResponse = this.formatXml(response.data.originResult)
-      //   this.comparedResponse = this.formatXml(response.data.comparedResult)
-      // }).catch((e) => {
-
-      // })
-
-      // service.requestDirectXML(this.originUrl).then((response) => {
-      //   console.info(response)
-      // }).catch((e) => {
-
-      // })
       axios.all([service.requestDirectXML(this.originUrl), service.requestDirectXML(this.comparedUrl)])
         .then(axios.spread((originResponse, comparedResponse) => {
           console.info(originResponse)
           console.info(comparedResponse)
-          this.originResponse = this.formatXml(originResponse.data)
-          this.comparedResponse = this.formatXml(comparedResponse.data)
+          this.originResponse = format.xml(originResponse.data)
+          this.comparedResponse = format.xml(comparedResponse.data)
         })).catch((e) => {
           this.$Message.error('oops! couldn\'t get the response from the api')
         })
@@ -140,55 +137,6 @@ export default {
       })
       return urlObj
     },
-    formatXml (text) {
-      text = '\n' + text.replace(/(<\w+)(\s.*?>)/g, ($0, name, props) => {
-        return name + ' ' + props.replace(/\s+(\w+=)/g, ' $1')
-      }).replace(/>\s*?</g, '>\n<')
-      text = text.replace(/\n/g, '\r').replace(/<!--(.+?)-->/g, ($0, text) => {
-        var ret = '<!--' + escape(text) + '-->'
-        return ret
-      }).replace(/\r/g, '\n')
-      var rgx = /\n(<(([^?]).+?)(?:\s|\s*?>|\s*?(\/)>)(?:.*?(?:(?:(\/)>)|(?:<(\/)\2>)))?)/mg
-      var nodeStack = []
-      var output = text.replace(rgx, ($0, all, name, isBegin, isCloseFull1, isCloseFull2, isFull1, isFull2) => {
-        var isClosed = (isCloseFull1 === '/') || (isCloseFull2 === '/') || (isFull1 === '/') || (isFull2 === '/')
-        var prefix = ''
-        if (isBegin === '!') {
-          prefix = this.getPrefix(nodeStack.length)
-        } else {
-          if (isBegin !== '/') {
-            prefix = this.getPrefix(nodeStack.length)
-            if (!isClosed) {
-              nodeStack.push(name)
-            }
-          } else {
-            nodeStack.pop()
-            prefix = this.getPrefix(nodeStack.length)
-          }
-        }
-        var ret = '\n' + prefix + all
-        return ret
-      })
-      var outputText = output.substring(1)
-      outputText = outputText.replace(/\n/g, '\r').replace(/(\s*)<!--(.+?)-->/g, function ($0, prefix, text) {
-        if (prefix.charAt(0) === '\r') {
-          prefix = prefix.substring(1)
-        }
-        text = unescape(text).replace(/\r/g, '\n')
-        var ret = '\n' + prefix + '<!--' + text.replace(/^\s*/mg, prefix) + '-->'
-        return ret
-      })
-
-      return outputText.replace(/\s+$/g, '').replace(/\r/g, '\r\n')
-    },
-    getPrefix (prefixIndex) {
-      var span = '  '
-      var output = []
-      for (var i = 0; i < prefixIndex; ++i) {
-        output.push(span)
-      }
-      return output.join('')
-    },
     copyXml () {
       let clipboard = new Clipboard('.copy')
       clipboard.on('success', e => {
@@ -203,6 +151,8 @@ export default {
   },
   data () {
     return {
+      compareOutputFormat: false,
+      context: 10,
       originUrl: 'https://www.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
       comparedUrl: 'https://wwwqaalt2.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
       originResponse: '',
@@ -244,7 +194,6 @@ export default {
   -moz-box-align: center;
   align-items: center;
   padding: 0px 10px;
-  background: rgb(237, 237, 237);
 }
 .exchange-outer-container {
   position: absolute;
@@ -297,6 +246,9 @@ export default {
   line-height: 1rem;
   margin: 0px 1px;
   border-right: 20px solid white;
+}
+.swtich-label {
+  color: #2d8cf0;
 }
 h1,
 h2 {
