@@ -5,26 +5,14 @@
       <div id="compare-form">
         <Form :label-width="80"
               @submit.native.prevent>
-          <Row :gutter="32">
-            <Col span="12">
-            <FormItem label="API 1:">
-              <Input v-model="originUrl"></Input>
-            </FormItem>
-            </Col>
-            <Col span="12">
-            <FormItem label="API 2:">
-              <Input v-model="comparedUrl"></Input>
-            </FormItem>
-            </Col>
-          </Row>
 
           <Row :gutter="32"
                type="flex">
             <Col span="12">
-            <url-params :url-obj="originUrlObj" />
+            <url-params v-model="originUrl" />
             </Col>
             <Col span="12">
-            <url-params :url-obj="comparedUrlObj" />
+            <url-params v-model="comparedUrl" />
             </Col>
           </Row>
 
@@ -94,15 +82,8 @@ export default {
     vueCodeDiff
   },
   mounted () {
-
   },
   computed: {
-    originUrlObj: function () {
-      return this.extractParams(this.originUrl)
-    },
-    comparedUrlObj: function () {
-      return this.extractParams(this.comparedUrl)
-    }
   },
   methods: {
     compare () {
@@ -116,28 +97,6 @@ export default {
           this.$Message.error('oops! couldn\'t get the response from the api')
           console.info(e)
         })
-    },
-    extractParams (url) {
-      const urlObj = {
-        endpoint: '',
-        params: {}
-      }
-
-      var RegUrl = new RegExp()
-      RegUrl.compile('^[A-Za-z]+://[A-Za-z0-9-_]+\\.[A-Za-z0-9-_%&\\?\\/.=]+$')
-      if (!RegUrl.test(url)) {
-        return urlObj
-      }
-      if (url.indexOf('?') === -1) {
-        return urlObj
-      }
-      urlObj.endpoint = url.substr(0, url.indexOf('?'))
-      const paramsArray = url.substr(url.indexOf('?') + 1).split('&')
-      paramsArray.forEach(e => {
-        const pair = e.split('=')
-        urlObj.params[pair[0]] = pair[1]
-      })
-      return urlObj
     },
     copyXml () {
       let clipboard = new Clipboard('.copy')

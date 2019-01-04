@@ -10,7 +10,7 @@ import { createPatch } from 'diff'
 import { Diff2Html } from 'diff2html'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/googlecode.css'
-import 'diff2html/dist/diff2html.css'
+import 'diff2html/dist/diff2html.min.css'
 export default {
   name: 'code-diff',
   props: {
