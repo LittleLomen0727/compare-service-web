@@ -1,0 +1,16 @@
+Responses Match: Failed 222
+
+TimeStamp: Thu January 03 2019 - 05:02:12 CST
+
+TestStep: VINX-all
+
+
+
+------------------------------------ Requests ---------------------------------------
+
+ 
+
+Env 1: https://www.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true
+
+Env 2: https://wwwqaalt2.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true
+

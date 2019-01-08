@@ -3,9 +3,25 @@
     <div class="service-header">
       <h2 id="title">Service Compare</h2>
       <div id="compare-form">
-        <Form :label-width="80"
+        <Form :label-width="100"
               @submit.native.prevent>
-
+          <Row :gutter="32">
+            <Col span="24">
+            <Upload type="drag"
+                    ref="upload"
+                    accept="text/plain"
+                    :format="['txt']"
+                    action="//localhost:8080/"
+                    :before-upload="handleBeforeUpload">
+              <div style="padding: 10px 0">
+                <Icon type="ios-cloud-upload"
+                      size="25"
+                      style="color: #3399ff"></Icon>
+                <p>{{uploadHint}}</p>
+              </div>
+            </Upload>
+            </Col>
+          </Row>
           <Row :gutter="32"
                type="flex">
             <Col span="12">
@@ -15,6 +31,19 @@
             <url-params v-model="comparedUrl" />
             </Col>
           </Row>
+
+          <!-- <Row :gutter="32">
+            <Col span="12">
+            <FormItem label="Cookie(Optional):">
+              <Input v-model="originCookie"></Input>
+            </FormItem>
+            </Col>
+            <Col span="12">
+            <FormItem label="Cookie(Optional):">
+              <Input v-model="comparedCookie"></Input>
+            </FormItem>
+            </Col>
+          </Row> -->
 
           <Row :gutter="32">
             <Col span="6">
@@ -29,7 +58,7 @@
             </Col>
           </Row>
 
-          <Row>
+          <Row style="margin-top:20px;">
             <Col span="24">
             <Button type="primary"
                     @click="compare">Compare</Button>
@@ -87,7 +116,7 @@ export default {
   },
   methods: {
     compare () {
-      axios.all([service.requestDirectXML(this.originUrl), service.requestDirectXML(this.comparedUrl)])
+      axios.all([service.requestDirectXML(this.originUrl, this.originCookie), service.requestDirectXML(this.comparedUrl, this.comparedCookie)])
         .then(axios.spread((originResponse, comparedResponse) => {
           console.info(originResponse)
           console.info(comparedResponse)
@@ -108,16 +137,48 @@ export default {
         this.$Message.error('Copy error')
         clipboard.destroy()
       })
+    },
+    handleBeforeUpload (file) {
+      console.info(file)
+      var reader = new FileReader()
+      reader.readAsText(file, 'utf-8')
+      reader.onload = (e) => {
+        var fileText = e.target.result.split('\n')
+        if (!fileText) return
+        this.uploadHint = fileText[0]
+        var url1 = ''
+        var url2 = ''
+        for (let i = 0; i < fileText.length; i++) {
+          const element = fileText[i]
+          if (element.startsWith('Env 1: ')) {
+            url1 = element.substr(7)
+          }
+          if (element.startsWith('Env 2: ')) {
+            url2 = element.substr(7)
+          }
+          if (!!url1 && !!url2) {
+            this.originUrl = url1
+            this.comparedUrl = url2
+            return
+          }
+        }
+      }
+      return false
     }
   },
   data () {
     return {
       compareOutputFormat: false,
       context: 10,
-      originUrl: 'https://www.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
-      comparedUrl: 'https://wwwqaalt2.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
+      // originUrl: 'https://www.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
+      // comparedUrl: 'https://wwwqaalt2.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
+      originUrl: '',
+      comparedUrl: '',
+      originCookie: '',
+      comparedCookie: '',
       originResponse: '',
-      comparedResponse: ''
+      comparedResponse: '',
+      uploadHint: 'Click or drag txt file here to analysis'
     }
   }
 }

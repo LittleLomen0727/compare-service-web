@@ -6,7 +6,7 @@ export default {
     return post(url, request)
   },
 
-  requestDirectXML (url) {
+  requestDirectXML (url, cookie) {
     const config = {
       baseURL: ''
     }

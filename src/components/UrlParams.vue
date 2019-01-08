@@ -26,6 +26,7 @@
 </template>
 
 <script>
+const queryString = require('query-string')
 export default {
   name: 'url-params',
   props: {
@@ -45,6 +46,9 @@ export default {
     }
   },
   watch: {
+    url (newVal) {
+      this.currentUrl = newVal
+    },
     urlObj: {
       handler (newVal) {
         this.currentUrl = this.contactParamsToUrl(newVal)
@@ -62,21 +66,15 @@ export default {
         endpoint: '',
         params: []
       }
-      var RegUrl = new RegExp()
-      RegUrl.compile('^[A-Za-z]+://[A-Za-z0-9-_]+\\.[A-Za-z0-9-_%&\\?\\/.=]+$')
-      if (!RegUrl.test(url)) {
+      var o = queryString.parseUrl(url)
+      urlObj.endpoint = o.url
+      if (!o.query) {
         return urlObj
       }
-      if (url.indexOf('?') === -1) {
-        return urlObj
-      }
-      urlObj.endpoint = url.substr(0, url.indexOf('?'))
-      const paramsArray = url.substr(url.indexOf('?') + 1).split('&')
-      paramsArray.forEach(e => {
-        const pair = e.split('=')
+      Object.keys(o.query).forEach((key) => {
         urlObj.params.push({
-          paramName: pair[0],
-          paramValue: pair[1]
+          paramName: key,
+          paramValue: o.query[key]
         })
       })
       return urlObj
