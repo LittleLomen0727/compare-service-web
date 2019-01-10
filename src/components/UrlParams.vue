@@ -1,11 +1,19 @@
 <template>
   <div>
     <FormItem label="API:">
-      <Input v-model="currentUrl"></Input>
+      <Input v-model="request.url">
+      <Select v-model="request.method"
+              slot="prepend"
+              style="width: 70px">
+        <Option value="GET">GET</Option>
+        <Option value="POST">POST</Option>
+      </Select>
+      </Input>
     </FormItem>
     <div v-show="!!urlObj.endpoint">
       <FormItem label="Endpoint:">
-        <Input v-model="urlObj.endpoint"></Input>
+        <Input v-model="urlObj.endpoint">
+        </Input>
       </FormItem>
       <FormItem :label="'Param ' + (index + 1)"
                 v-for="(param, index) in urlObj.params"
@@ -30,34 +38,41 @@ const queryString = require('query-string')
 export default {
   name: 'url-params',
   props: {
-    url: {
-      type: String,
-      default: ''
+    request: {
+      type: Object,
+      default: () => ({
+        url: '',
+        method: 'GET'
+      })
     }
   },
   model: {
-    prop: 'url',
+    prop: 'request',
     event: 'update'
   },
   data () {
     return {
-      currentUrl: this.url,
-      urlObj: this.extractParams(this.url)
+      // currentUrl: this.url,
+      urlObj: this.extractParams(this.request.url)
+      // method: 'GET',
     }
   },
   watch: {
-    url (newVal) {
-      this.currentUrl = newVal
-    },
+    // url (newVal) {
+    //   this.currentUrl = newVal
+    // },
     urlObj: {
       handler (newVal) {
-        this.currentUrl = this.contactParamsToUrl(newVal)
+        this.request.url = this.contactParamsToUrl(newVal)
       },
       deep: true
     },
-    currentUrl (newVal) {
-      this.urlObj = this.extractParams(newVal)
-      this.$emit('update', newVal)
+    request: {
+      handler (newVal) {
+        this.urlObj = this.extractParams(newVal.url)
+        this.$emit('update', newVal)
+      },
+      deep: true
     }
   },
   methods: {

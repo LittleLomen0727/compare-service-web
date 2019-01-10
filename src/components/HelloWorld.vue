@@ -17,7 +17,7 @@
                 <Icon type="ios-cloud-upload"
                       size="25"
                       style="color: #3399ff"></Icon>
-                <p>{{uploadHint}}</p>
+                <p v-html="uploadHint"></p>
               </div>
             </Upload>
             </Col>
@@ -25,10 +25,10 @@
           <Row :gutter="32"
                type="flex">
             <Col span="12">
-            <url-params v-model="originUrl" />
+            <url-params v-model="originRequest" />
             </Col>
             <Col span="12">
-            <url-params v-model="comparedUrl" />
+            <url-params v-model="comparedRequest" />
             </Col>
           </Row>
 
@@ -62,6 +62,7 @@
             <Col span="24">
             <Button type="primary"
                     @click="compare">Compare</Button>
+            <Button @click="clearAll">Clear All</Button>
             </Col>
           </Row>
         </Form>
@@ -116,7 +117,7 @@ export default {
   },
   methods: {
     compare () {
-      axios.all([service.requestDirectXML(this.originUrl, this.originCookie), service.requestDirectXML(this.comparedUrl, this.comparedCookie)])
+      axios.all([service.requestDirectXML(this.originRequest.url, this.originRequest.method), service.requestDirectXML(this.comparedRequest.url, this.comparedRequest.method)])
         .then(axios.spread((originResponse, comparedResponse) => {
           console.info(originResponse)
           console.info(comparedResponse)
@@ -150,6 +151,9 @@ export default {
         var url2 = ''
         for (let i = 0; i < fileText.length; i++) {
           const element = fileText[i]
+          if (element.startsWith('TestStep')) {
+            this.uploadHint += '<br>' + element
+          }
           if (element.startsWith('Env 1: ')) {
             url1 = element.substr(7)
           }
@@ -157,13 +161,30 @@ export default {
             url2 = element.substr(7)
           }
           if (!!url1 && !!url2) {
-            this.originUrl = url1
-            this.comparedUrl = url2
+            this.originRequest.url = url1
+            this.comparedRequest.url = url2
             return
           }
         }
       }
       return false
+    },
+    clearAll () {
+      // this.originUrl = ''
+      // this.comparedUrl = ''
+      this.originRequest = {
+        url: '',
+        method: 'GET'
+      }
+      this.comparedRequest = {
+        url: '',
+        method: 'GET'
+      }
+      this.originCookie = ''
+      this.comparedCookie = ''
+      this.originResponse = ''
+      this.comparedResponse = ''
+      this.uploadHint = 'Click or drag txt file here to analysis'
     }
   },
   data () {
@@ -172,8 +193,16 @@ export default {
       context: 10,
       // originUrl: 'https://www.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
       // comparedUrl: 'https://wwwqaalt2.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
-      originUrl: '',
-      comparedUrl: '',
+      // originUrl: '',
+      originRequest: {
+        url: '',
+        method: 'GET'
+      },
+      // comparedUrl: '',
+      comparedRequest: {
+        url: '',
+        method: 'GET'
+      },
       originCookie: '',
       comparedCookie: '',
       originResponse: '',

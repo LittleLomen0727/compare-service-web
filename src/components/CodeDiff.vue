@@ -51,8 +51,8 @@ export default {
       // }
       let args = ['', oldString, newString, '', '', { context: context }]
       let dd = createPatch(...args)
-      let outStr = Diff2Html.getJsonFromDiff(dd, { inputFormat: 'diff', outputFormat: outputFormat, showFiles: false, matching: 'lines' })
-      let html = Diff2Html.getPrettyHtml(outStr, { inputFormat: 'json', outputFormat: outputFormat, showFiles: false, matching: 'lines' })
+      let outStr = Diff2Html.getJsonFromDiff(dd, { inputFormat: 'diff', outputFormat: outputFormat, showFiles: false, matching: 'none' })
+      let html = Diff2Html.getPrettyHtml(outStr, { inputFormat: 'json', outputFormat: outputFormat, showFiles: false, matching: 'none' })
       return html
     }
   }

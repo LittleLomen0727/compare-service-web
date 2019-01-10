@@ -6,10 +6,14 @@ export default {
     return post(url, request)
   },
 
-  requestDirectXML (url, cookie) {
+  requestDirectXML (url, method) {
     const config = {
       baseURL: ''
     }
-    return get(url, config)
+    if (method === 'GET') return get(url, config)
+    if (method === 'POST') return post(url, {}, config)
+    return new Promise((resolve, reject) => {
+      reject(new Error('error'))
+    })
   }
 }

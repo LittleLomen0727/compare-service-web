@@ -1,8 +1,8 @@
-Responses Match: Failed 222
+Responses Match: Failed
 
-TimeStamp: Thu January 03 2019 - 05:02:12 CST
+TimeStamp: Wed January 09 2019 - 10:52:05 CST
 
-TestStep: VINX-all
+TestStep: ConfigToken with invalid price
 
 
 
