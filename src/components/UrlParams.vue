@@ -10,6 +10,7 @@
       </Select>
       </Input>
     </FormItem>
+    <!-- params start -->
     <div v-show="!!urlObj.endpoint">
       <FormItem label="Endpoint:">
         <Input v-model="urlObj.endpoint">
@@ -30,6 +31,10 @@
         </Row>
       </FormItem>
     </div>
+    <!-- params end -->
+    <FormItem label="Cookie(Optional):">
+      <Input v-model="request.customCookie"></Input>
+    </FormItem>
   </div>
 </template>
 

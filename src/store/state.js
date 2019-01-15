@@ -1,4 +1,5 @@
 
 export default {
-  pageLoading: false
+  pageLoading: false,
+  showComparing: false
 }

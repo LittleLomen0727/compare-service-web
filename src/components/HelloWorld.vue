@@ -32,19 +32,6 @@
             </Col>
           </Row>
 
-          <!-- <Row :gutter="32">
-            <Col span="12">
-            <FormItem label="Cookie(Optional):">
-              <Input v-model="originCookie"></Input>
-            </FormItem>
-            </Col>
-            <Col span="12">
-            <FormItem label="Cookie(Optional):">
-              <Input v-model="comparedCookie"></Input>
-            </FormItem>
-            </Col>
-          </Row> -->
-
           <Row :gutter="32">
             <Col span="6">
             <span :class="{'swtich-label':!compareOutputFormat}">Side-By-Side</span>
@@ -61,7 +48,11 @@
           <Row style="margin-top:20px;">
             <Col span="24">
             <Button type="primary"
+                    :disabled="!originRequest.url || !comparedRequest.url || !!originRequest.customCookie || !!comparedRequest.customCookie"
                     @click="compare">Compare</Button>
+            <Button type="primary"
+                    :disabled="!originRequest.url || !comparedRequest.url"
+                    @click="serverCompare">Server Compare</Button>
             <Button @click="clearAll">Clear All</Button>
             </Col>
           </Row>
@@ -119,13 +110,25 @@ export default {
     compare () {
       axios.all([service.requestDirectXML(this.originRequest.url, this.originRequest.method), service.requestDirectXML(this.comparedRequest.url, this.comparedRequest.method)])
         .then(axios.spread((originResponse, comparedResponse) => {
-          console.info(originResponse)
-          console.info(comparedResponse)
           this.originResponse = format.xml(originResponse.data)
           this.comparedResponse = format.xml(comparedResponse.data)
         })).catch((e) => {
           this.$Message.error('oops! couldn\'t get the response from the api')
           console.info(e)
+        })
+    },
+    serverCompare () {
+      let request = {
+        originRequest: this.originRequest,
+        comparedRequest: this.comparedRequest
+      }
+      service.compare(request)
+        .then((response) => {
+          this.originResponse = format.xml(response.data.originResult)
+          this.comparedResponse = format.xml(response.data.comparedResult)
+        })
+        .catch((e) => {
+          this.$Message.error('oops! couldn\'t get the response from the api')
         })
     },
     copyXml () {
@@ -140,15 +143,14 @@ export default {
       })
     },
     handleBeforeUpload (file) {
-      console.info(file)
       var reader = new FileReader()
       reader.readAsText(file, 'utf-8')
       reader.onload = (e) => {
-        var fileText = e.target.result.split('\n')
+        let fileText = e.target.result.split('\n')
         if (!fileText) return
         this.uploadHint = fileText[0]
-        var url1 = ''
-        var url2 = ''
+        let url1 = ''
+        let url2 = ''
         for (let i = 0; i < fileText.length; i++) {
           const element = fileText[i]
           if (element.startsWith('TestStep')) {
@@ -170,18 +172,16 @@ export default {
       return false
     },
     clearAll () {
-      // this.originUrl = ''
-      // this.comparedUrl = ''
       this.originRequest = {
         url: '',
-        method: 'GET'
+        method: 'GET',
+        customCookie: ''
       }
       this.comparedRequest = {
         url: '',
-        method: 'GET'
+        method: 'GET',
+        customCookie: ''
       }
-      this.originCookie = ''
-      this.comparedCookie = ''
       this.originResponse = ''
       this.comparedResponse = ''
       this.uploadHint = 'Click or drag txt file here to analysis'
@@ -191,20 +191,18 @@ export default {
     return {
       compareOutputFormat: false,
       context: 10,
-      // originUrl: 'https://www.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
-      // comparedUrl: 'https://wwwqaalt2.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
-      // originUrl: '',
       originRequest: {
         url: '',
-        method: 'GET'
+        // url: 'https://www.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
+        method: 'GET',
+        customCookie: ''
       },
-      // comparedUrl: '',
       comparedRequest: {
         url: '',
-        method: 'GET'
+        // url: 'https://wwwqaalt2.servicesus.ford.com/products/ModelSlices?make=Ford&model=Mustang&year=2018&modelSliceDefiners=NGB_Nameplate_ModelDefiners&showConfigData=true',
+        method: 'GET',
+        customCookie: ''
       },
-      originCookie: '',
-      comparedCookie: '',
       originResponse: '',
       comparedResponse: '',
       uploadHint: 'Click or drag txt file here to analysis'
@@ -215,6 +213,9 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+button + button {
+  margin-left: 10px;
+}
 .service-header {
   padding: 0 20px;
 }

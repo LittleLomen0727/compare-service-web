@@ -5,7 +5,11 @@
           size="large"
           fix>
     </Spin>
+    <Spin v-if="showComparing"
+          class="demo-spin-col"
+          fix>Comparing...</Spin>
     <router-view />
+    <BackTop></BackTop>
   </div>
 </template>
 
@@ -16,7 +20,8 @@ export default {
   name: 'App',
   computed: {
     ...mapState([
-      'pageLoading'
+      'pageLoading',
+      'showComparing'
     ])
   }
 }
@@ -29,5 +34,9 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+}
+
+.demo-spin-col {
+  border: 1px solid #eee;
 }
 </style>
