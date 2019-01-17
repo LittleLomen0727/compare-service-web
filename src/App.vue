@@ -1,11 +1,11 @@
 <template>
   <div id="app"
        style="margin-top:30px">
-    <Spin v-if="pageLoading"
+    <Spin v-show="pageLoading"
           size="large"
           fix>
     </Spin>
-    <Spin v-if="showComparing"
+    <Spin v-show="showComparing"
           class="demo-spin-col"
           fix>Comparing...</Spin>
     <router-view />

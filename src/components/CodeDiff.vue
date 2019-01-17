@@ -45,8 +45,13 @@ export default {
   },
   computed: {
     html () {
-      store.commit(UPDATE_SHOW_COMPARING, true)
       return this.createdHtml(this.oldString, this.newString, this.context, this.outputFormat)
+    }
+  },
+  updated () {
+    console.log('updated')
+    if (!!this.oldString && !!this.newString) {
+      store.commit(UPDATE_SHOW_COMPARING, false)
     }
   },
   methods: {
@@ -58,8 +63,6 @@ export default {
       // const dmp = new DiffMatchPatch()
       // const diff = dmp.diff_main(oldString, newString)
       // let html = dmp.diff_prettyHtml(diff)
-
-      store.commit(UPDATE_SHOW_COMPARING, false)
       return html
     }
   }

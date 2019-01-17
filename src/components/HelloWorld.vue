@@ -95,7 +95,10 @@ import service from '@/service'
 import Clipboard from 'clipboard'
 import UrlParams from './UrlParams'
 import vueCodeDiff from './CodeDiff'
+import store from '../store'
+import { UPDATE_SHOW_COMPARING } from '@/store/types/mutation-types'
 var format = require('pretty-data').pd
+
 export default {
   name: 'HelloWorld',
   components: {
@@ -108,8 +111,11 @@ export default {
   },
   methods: {
     compare () {
+      this.originResponse = ''
+      this.comparedResponse = ''
       axios.all([service.requestDirectXML(this.originRequest.url, this.originRequest.method), service.requestDirectXML(this.comparedRequest.url, this.comparedRequest.method)])
         .then(axios.spread((originResponse, comparedResponse) => {
+          store.commit(UPDATE_SHOW_COMPARING, true)
           this.originResponse = format.xml(originResponse.data)
           this.comparedResponse = format.xml(comparedResponse.data)
         })).catch((e) => {
@@ -118,12 +124,15 @@ export default {
         })
     },
     serverCompare () {
+      this.originResponse = ''
+      this.comparedResponse = ''
       let request = {
         originRequest: this.originRequest,
         comparedRequest: this.comparedRequest
       }
       service.compare(request)
         .then((response) => {
+          store.commit(UPDATE_SHOW_COMPARING, true)
           this.originResponse = format.xml(response.data.originResult)
           this.comparedResponse = format.xml(response.data.comparedResult)
         })
